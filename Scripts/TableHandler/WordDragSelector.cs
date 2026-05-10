@@ -67,6 +67,9 @@ public class WordDragSelector : MonoBehaviour
         if (cells == null)
             return;
 
+        if (PuzzleRunSession.RoundEnded)
+            return;
+
         if (inputHandler == null)
             inputHandler = InputManager.InputHandler;
 
@@ -182,6 +185,9 @@ public class WordDragSelector : MonoBehaviour
         if (path.Count == 0)
             return;
 
+        if (PuzzleRunSession.RoundEnded)
+            return;
+
         var pathSnapshot = new List<LetterCellView>(path);
         string word = BuildWordFromPath(pathSnapshot);
         bool valid = ValidateWord(word);
@@ -194,6 +200,7 @@ public class WordDragSelector : MonoBehaviour
             lastSuccessPath.Clear();
             lastSuccessPath.AddRange(pathSnapshot);
             PlayWordCorrect();
+            PuzzleRunSession.TryRegisterCorrectWord(word);
         }
         else
         {
@@ -236,10 +243,8 @@ public class WordDragSelector : MonoBehaviour
         if (word.Length < minWordLength)
             return false;
 
-        if (puzzleWords != null && puzzleWords.Contains(word))
-            return true;
-
-        return WordLoading.GetAllWords().Contains(word);
+        // Only words that were successfully placed on the board count as valid submissions.
+        return puzzleWords != null && puzzleWords.Contains(word);
     }
 
     private void PlaySwipeStep()

@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
+
 public class TableFactory : MonoBehaviour
 {
     [Header("Table Settings")]
@@ -11,15 +13,18 @@ public class TableFactory : MonoBehaviour
     [SerializeField] private Transform gridParent;
     [SerializeField] private GameObject letterCellPrefab;
 
+    [Header("Run / scoring")]
+    [SerializeField] private int pointsPerLetter = 10;
+
     [SerializeField] private string[] words;
 
     private LetterCellView[,] cellViews;
 
     private char[] randomLetters =
     {
-        'А','Б','В','Г','Д','Ѓ','Е','Ж','З','Ѕ','И','Ј',
-        'К','Л','Љ','М','Н','Њ','О','П','Р','С','Т','Ќ',
-        'У','Ф','Х','Ц','Ч','Џ','Ш'
+        'А', 'Б', 'В', 'Г', 'Д', 'Ѓ', 'Е', 'Ж', 'З', 'Ѕ', 'И', 'Ј',
+        'К', 'Л', 'Љ', 'М', 'Н', 'Њ', 'О', 'П', 'Р', 'С', 'Т', 'Ќ',
+        'У', 'Ф', 'Х', 'Ц', 'Ч', 'Џ', 'Ш'
     };
 
     private char[,] grid;
@@ -50,18 +55,26 @@ public class TableFactory : MonoBehaviour
     {
         WordLoading.LoadAllWords();
 
-        words = WordSelectionService.SelectWordsForPuzzle();
+        string[] candidates = WordSelectionService.SelectWordsForPuzzle();
+        var placedWords = new List<string>();
+        CreateLetterGridFromCandidates(candidates, placedWords);
 
-        CreateLetterGrid();
+        words = placedWords.Count > 0 ? placedWords.ToArray() : System.Array.Empty<string>();
 
         SpawnGridUI();
+
+        PuzzleRunSession.ResetForNewRun(placedWords, pointsPerLetter);
+
+        PuzzleCountdownTimer timer = FindObjectOfType<PuzzleCountdownTimer>();
+        if (timer != null && !PuzzleRunSession.RoundEnded)
+            timer.BeginRound();
 
         WordDragSelector dragSelector = GetComponent<WordDragSelector>();
         if (dragSelector != null && cellViews != null)
             dragSelector.Initialize(cellViews, allowDiagonal, words);
     }
 
-    void CreateLetterGrid()
+    private void CreateLetterGridFromCandidates(IReadOnlyList<string> candidates, List<string> placedWords)
     {
         grid = new char[rows, cols];
 
@@ -73,15 +86,26 @@ public class TableFactory : MonoBehaviour
             }
         }
 
-        foreach (string word in words ?? System.Array.Empty<string>())
+        if (candidates == null)
         {
-            PlaceWord(word);
+            FillEmptySpaces();
+            return;
+        }
+
+        foreach (string raw in candidates)
+        {
+            if (string.IsNullOrWhiteSpace(raw))
+                continue;
+
+            string word = raw.Trim().ToUpperInvariant();
+            if (TryPlaceWord(word))
+                placedWords.Add(word);
         }
 
         FillEmptySpaces();
     }
 
-    void PlaceWord(string word)
+    private bool TryPlaceWord(string word)
     {
         bool placed = false;
         int trials = 0;
@@ -101,12 +125,12 @@ public class TableFactory : MonoBehaviour
         }
 
         if (!placed)
-        {
             Debug.LogWarning($"Unable to place word '{word}' after {trials} attempts.");
-        }
+
+        return placed;
     }
 
-    WordDirection GetRandomDirection()
+    private WordDirection GetRandomDirection()
     {
         if (allowDiagonal)
             return AllDirections[Random.Range(0, AllDirections.Length)];
@@ -114,7 +138,7 @@ public class TableFactory : MonoBehaviour
         return StraightDirections[Random.Range(0, StraightDirections.Length)];
     }
 
-    bool CanPlaceWord(string word, int row, int col, WordDirection direction)
+    private bool CanPlaceWord(string word, int row, int col, WordDirection direction)
     {
         if (string.IsNullOrEmpty(word))
             return false;
@@ -155,7 +179,7 @@ public class TableFactory : MonoBehaviour
         return true;
     }
 
-    void WriteWord(string word, int row, int col, WordDirection direction)
+    private void WriteWord(string word, int row, int col, WordDirection direction)
     {
         if (string.IsNullOrEmpty(word))
             return;
@@ -189,7 +213,7 @@ public class TableFactory : MonoBehaviour
         }
     }
 
-    void FillEmptySpaces()
+    private void FillEmptySpaces()
     {
         for (int row = 0; row < rows; row++)
         {
@@ -201,7 +225,7 @@ public class TableFactory : MonoBehaviour
         }
     }
 
-    void SpawnGridUI()
+    private void SpawnGridUI()
     {
         if (letterCellPrefab == null || gridParent == null)
         {
