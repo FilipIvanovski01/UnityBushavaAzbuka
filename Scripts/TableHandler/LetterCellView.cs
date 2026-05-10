@@ -20,10 +20,10 @@ public class LetterCellView : MonoBehaviour
 
     private static Sprite sharedCircleSprite;
 
-    private static readonly Color IdleRingColor  = new Color(0.28f, 0.42f, 0.72f, 0f);
+    private static readonly Color IdleRingColor = new Color(0.28f, 0.42f, 0.72f, 0f);
     private static readonly Color SelectingColor = new Color(1f, 0.95f, 0.1f, 1f);
-    private static readonly Color SuccessColor   = new Color(0.1f, 1f,  0.25f, 1f);
-    private static readonly Color FailColor      = new Color(1f, 0.1f,  0.1f, 1f);
+    private static readonly Color SuccessColor = new Color(0.1f, 1f, 0.25f, 1f);
+    private static readonly Color FailColor = new Color(1f, 0.1f, 0.1f, 1f);
 
     private void Awake()
     {
