@@ -1,2 +1,0 @@
-{"sessionId":"980c04","hypothesisId":"H1","message":"compile_defines_legacy_Input_probe_follows","timestamp":1778345712326,"data":{"ENABLE_INPUT_SYSTEM":true,"ENABLE_LEGACY_INPUT_MANAGER":false}}
-{"sessionId":"980c04","hypothesisId":"H3","message":"legacy_Input_mousePosition_threw","timestamp":1778345712329,"data":{"ok":false,"type":"InvalidOperationException","msg":"You are trying to read Input using the UnityEngine.Input class, but you have switched active Input handling to Input System package in Player Settings."}}

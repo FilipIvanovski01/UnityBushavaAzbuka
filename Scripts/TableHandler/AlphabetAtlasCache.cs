@@ -20,6 +20,7 @@ public static class AlphabetAtlasCache
     };
 
     private static bool loaded;
+    private static bool warnedEmptyResources;
     private static Sprite[] rawSprites = Array.Empty<Sprite>();
     private static readonly Dictionary<char, Sprite> ByChar = new Dictionary<char, Sprite>();
 
@@ -31,7 +32,18 @@ public static class AlphabetAtlasCache
         loaded = true;
         rawSprites = Resources.LoadAll<Sprite>(AtlasResourcePath) ?? Array.Empty<Sprite>();
         if (rawSprites.Length == 0)
+        {
+            if (!warnedEmptyResources)
+            {
+                warnedEmptyResources = true;
+                Debug.LogWarning(
+                    $"AlphabetAtlasCache: no sprites at Resources/{AtlasResourcePath}. " +
+                    "Add a sprite sheet or sprites under Assets/Resources/Alphabet/ (see Unity Resources rules). " +
+                    "Letter cells will fall back to TMP text until sprites load.");
+            }
+
             return;
+        }
 
         foreach (Sprite s in rawSprites)
         {
